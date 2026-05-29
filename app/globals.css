@@ -3,3 +3,53 @@
 body {
   font-family: Arial, Helvetica, sans-serif;
 }
+
+/* ── Field Mode (Sunlight / Light) ─────────────────────────────────────────
+   Activated by adding .field-mode to <html>.
+   Tailwind v4 uses CSS custom properties for all colors (var(--color-*)).
+   Overriding the variables here cascades to every element using them.
+──────────────────────────────────────────────────────────────────────────── */
+
+.field-mode {
+  /* Backgrounds: slate scale flips dark → light */
+  --color-slate-950: #ffffff;
+  --color-slate-900: #f1f5f9;
+  --color-slate-800: #e2e8f0;
+  --color-slate-700: #cbd5e1;
+
+  /* Text: slate scale darkens for contrast on light surfaces */
+  --color-slate-300: #1e293b;
+  --color-slate-400: #334155;
+  --color-slate-500: #475569;
+  --color-slate-600: #64748b;
+
+  /* Blue accents: deepen so they read on white backgrounds */
+  --color-blue-300: oklch(37.9% 0.146 265.522); /* blue-900 equivalent */
+  --color-blue-400: oklch(37.9% 0.146 265.522);
+  --color-blue-950: oklch(93.2% 0.032 255.585); /* blue-100 — lightens header gradient */
+
+  /* Red: keep vivid */
+  --color-red-300: oklch(57.7% 0.245 27.325);
+  --color-red-400: oklch(57.7% 0.245 27.325);
+}
+
+/* Primary text in the main content area — overrides text-white inheritance */
+.field-mode main {
+  color: #0f172a;
+}
+
+/* Header title/subtitle — explicit text-white on now-light gradient */
+.field-mode header .text-white {
+  color: #0f172a;
+}
+
+/* Ruling text — most critical field read, bump size and lock color */
+.field-mode .ruling-text {
+  color: #0f172a !important;
+  font-size: 1.75rem;
+  line-height: 2rem;
+}
+
+/* Error banners: keep red tint visible on light bg */
+.field-mode .bg-red-950\/40 { background-color: rgba(254, 226, 226, 0.9); }
+.field-mode .bg-red-950\/60 { background-color: rgba(254, 226, 226, 0.95); }
