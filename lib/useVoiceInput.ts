@@ -25,17 +25,23 @@ export function useVoiceInput() {
   const [voiceState, setVoiceState] = useState<VoiceState>('idle')
   const [interimText, setInterimText] = useState('')
   const recognitionRef = useRef<any>(null)
+  const activeRef = useRef(false)
   const finalRef = useRef('')
   const resultIndexRef = useRef(0)
+  const errorTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const [isSupported, setIsSupported] = useState(false)
 
   useEffect(() => {
     setIsSupported('SpeechRecognition' in window || 'webkitSpeechRecognition' in window)
+    return () => {
+      if (errorTimerRef.current) clearTimeout(errorTimerRef.current)
+    }
   }, [])
 
   function start(onFinal: (text: string) => void) {
-    if (!isSupported || voiceState === 'listening') return
+    if (!isSupported || activeRef.current) return
+    activeRef.current = true
 
     const SR =
       (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition
@@ -50,7 +56,6 @@ export function useVoiceInput() {
 
     rec.onresult = (e: SpeechRecognitionEvent) => {
       let interim = ''
-      // Only process results we haven't seen yet
       for (let i = resultIndexRef.current; i < e.results.length; i++) {
         const result = e.results[i]
         if (result.isFinal) {
@@ -64,6 +69,7 @@ export function useVoiceInput() {
     }
 
     rec.onend = () => {
+      activeRef.current = false
       setVoiceState('idle')
       setInterimText('')
       if (finalRef.current.trim()) {
@@ -72,10 +78,15 @@ export function useVoiceInput() {
     }
 
     rec.onerror = (e: SpeechRecognitionErrorEvent) => {
-      if (e.error !== 'no-speech') setVoiceState('error')
-      else setVoiceState('idle')
+      activeRef.current = false
+      if (e.error !== 'no-speech') {
+        setVoiceState('error')
+        if (errorTimerRef.current) clearTimeout(errorTimerRef.current)
+        errorTimerRef.current = setTimeout(() => setVoiceState('idle'), 1500)
+      } else {
+        setVoiceState('idle')
+      }
       setInterimText('')
-      setTimeout(() => setVoiceState('idle'), 1500)
     }
 
     recognitionRef.current = rec

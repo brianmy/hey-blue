@@ -240,17 +240,23 @@ export default function Home() {
   async function applyLeagueCode(code: string, collapse = false) {
     setCodeLoading(true)
     setCodeError(null)
-    const res = await fetch(`/api/league?code=${encodeURIComponent(code)}`)
-    setCodeLoading(false)
-    if (res.ok) {
+    try {
+      const res = await fetch(`/api/league?code=${encodeURIComponent(code)}`)
+      if (!res.ok) {
+        setCodeError('League code not found.')
+        setActiveLeague(null)
+        return
+      }
       const data: LeagueInfo = await res.json()
       setActiveLeague(data)
       setLeague(data.baseRuleset)
       localStorage.setItem('umpireLeagueCode', code.toUpperCase())
       if (collapse) setSessionOpen(false)
-    } else {
-      setCodeError('League code not found.')
+    } catch {
+      setCodeError('Could not reach the server. Check your connection.')
       setActiveLeague(null)
+    } finally {
+      setCodeLoading(false)
     }
   }
 
@@ -346,9 +352,6 @@ export default function Home() {
                 <span className="text-sm font-semibold text-white">
                   {LEAGUE_LABELS[league].split(' (')[0]}
                 </span>
-                <span className="text-slate-600 text-xs">
-                  ({LEAGUE_LABELS[league].split(' (')[1]?.replace(')', '')})
-                </span>
                 {activeLeague && (
                   <>
                     <span className="text-slate-700">·</span>
@@ -379,25 +382,19 @@ export default function Home() {
             <div>
               <p className="text-[11px] text-slate-500 uppercase tracking-wider mb-2">Division</p>
               <div className="grid grid-cols-4 gap-1.5">
-                {LEAGUES.map((l) => {
-                  const [name, ages] = LEAGUE_LABELS[l].split(' (')
-                  return (
-                    <button
-                      key={l}
-                      onClick={() => setLeague(l)}
-                      className={`py-2.5 rounded-xl text-sm font-semibold transition-all duration-150 flex flex-col items-center gap-0.5 border ${
-                        league === l
-                          ? 'bg-blue-600 border-blue-500 text-white shadow-lg shadow-blue-600/25'
-                          : 'bg-slate-800 border-slate-700 text-slate-400 hover:border-slate-500 hover:text-slate-200'
-                      }`}
-                    >
-                      <span>{name}</span>
-                      <span className={`text-[10px] font-normal ${league === l ? 'text-blue-200' : 'text-slate-600'}`}>
-                        {ages?.replace(')', '')}
-                      </span>
-                    </button>
-                  )
-                })}
+                {LEAGUES.map((l) => (
+                  <button
+                    key={l}
+                    onClick={() => setLeague(l)}
+                    className={`py-2.5 rounded-xl text-sm font-semibold transition-all duration-150 border ${
+                      league === l
+                        ? 'bg-blue-600 border-blue-500 text-white shadow-lg shadow-blue-600/25'
+                        : 'bg-slate-800 border-slate-700 text-slate-400 hover:border-slate-500 hover:text-slate-200'
+                    }`}
+                  >
+                    {LEAGUE_LABELS[l].split(' (')[0]}
+                  </button>
+                ))}
               </div>
             </div>
 
