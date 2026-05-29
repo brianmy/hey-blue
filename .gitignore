@@ -33,6 +33,9 @@ yarn-error.log*
 # env files (can opt-in for committing if needed)
 .env*
 
+# Runtime data — created by the app, not source code
+data/leagues.json
+
 # vercel
 .vercel
 
